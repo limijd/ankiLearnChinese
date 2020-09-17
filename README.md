@@ -28,7 +28,7 @@ Some pre-built resouces are also provided to help you get start. Below notes/car
 
 For un-organized material, only "字词" note type will be created. The note type can support 3 types of card: "学习字词", “朗读字词", “默写字词". 
 
-To build fully functional learning material, the document need to be structurized with a pre-defined YAML format which I call it CLTM("Chinese Learning Text Model"). See example.
+To build fully functional learning material, the document need to be structurized with a pre-defined YAML format which I call it TLM("Text Lesson Model"). See example.
 
 A simple manual ANKI database python3 "ORM" module is also provided to directly operate the ANKI database. It is useful when you try to analyze the current information in your ANKI decks. For example, I have created a tool to pre-analyze the readings to know how many new words are there. I usually use the script to process readings, books, or even movie captions. If there are too many new words in the material you can choose to import and learn these new words first.
 
