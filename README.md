@@ -47,6 +47,7 @@ It's working but not fully productized yet.
 
 ## Step by step setup guide
 
+https://github.com/limijd/ankiLearnChinese/wiki/Step-By-Step-Guide
 
 ## About
 
