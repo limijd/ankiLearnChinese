@@ -2,7 +2,9 @@
 
 ## Introduction
 
-The tool can process any Chinese text and build an optimal list of Chinese characters/words from the text. The "pinyin" and "definitions" of the characters/words/idioms will also be created for them based on two local good enough dictionaries. Audio of the character/words/text can also be generated. For Chinese characters, a list of high frequency words and idioms will be linked to help learn and understand the character.
+This is a tool to build ANKI Chinese learning material from text book, various articles, ...etc. 
+
+It can process any Chinese text and build an optimal list of Chinese characters/words from the text. The "pinyin" and "definitions" of the characters/words/idioms will also be created for them based on two local good enough dictionaries. Audio of the character/words/text can also be generated. For Chinese characters, a list of high frequency words and idioms will be linked to help learn and understand the character.
 
 All characters/words/idioms have frequency value which was obtained from the webdict database.
 
