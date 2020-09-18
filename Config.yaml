@@ -13,7 +13,7 @@ GOOGLE_TTS_PARAGRAPH_BREAK_TIME: "1s"
 #You can set the TTS_OUTPUT_DIR to ANKI media directory. 
 #If you don't choose to put tts audio to ANKI media directory,
 #you will have to copy the generated audio to ANKI media folder.
-TTS_OUTPUT_DIR: "tts.database"
+TTS_OUTPUT_DIR: "~/tts.database"
 
 #ANKI Note/Card setup
 ANKI_CHINESE_WORD_NOTE_TYPE: ["字词", "拼音", "笔画", "词组", "去字词组", "成语", "去字成语", "标准解释", "字词频", "例句", "辅助_修改读音"]

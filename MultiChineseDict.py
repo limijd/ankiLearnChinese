@@ -231,7 +231,9 @@ class MultiChineseDict:
             ch_w, freq, freq_pos = line.split()
             freq = int(freq)
             freq_pos = int(freq_pos)
+            ch_w = ch_w.decode("utf-8")
             self.allFreq[ch_w] = (freq, freq_pos)
+        fp.close()
 
         return
 

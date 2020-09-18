@@ -37,6 +37,7 @@ class AnkiLearnChineseNotes:
 
         self.enable_tts = self.config["GOOGLE_TTS_ENABLE"]
         self.tts_output_dir = self.config["TTS_OUTPUT_DIR"]
+        self.tts_output_dir = os.path.expanduser(self.config["TTS_OUTPUT_DIR"])
         if not self.tts_output_dir.startswith("/"):
             self.tts_output_dir = "%s/%s"%(SCRIPT_PATH, self.tts_output_dir)
         if args.with_tts:
@@ -535,7 +536,7 @@ def GenAnkiFromTextFile(fn, args):
         generate ANKI notes from a given text file
         for such case, only Word note type will be generated
     """
-    alc_notes = AnkiLearnChineseNotes()
+    alc_notes = AnkiLearnChineseNotes(args=args)
     alc_notes.setWithTTS(args.with_tts)
     fp = open(fn,"r")
     for line in fp.readlines():
