@@ -217,7 +217,7 @@ class TextLessonModel:
             self.articleModels[title] = tm
 
         for grammar in self.text["grammars"]:
-            gm = GrammarModel(grammar["grammar"], grammar, self)
+            gm = TLM_Grammar(grammar["grammar"], grammar, self)
             self.grammarModels[grammar["grammar"]] = gm
 
     def __repr__(self):
