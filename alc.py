@@ -630,7 +630,7 @@ def main():
             help="Generate ANKI notes for words extracted from the string")
     parser.add_argument('-it', '--input_text',
             help="Genearte ANKI notes for words extracted from the text file")
-    parser.add_argument('-iyt', '--input_yaml_tlm',
+    parser.add_argument('-iyt', '--input_yaml_tlm', type=argparse.FileType('r'), nargs='+',
             help="Generate ANKI notes for TLM model from the  yaml file")
     parser.add_argument('-ks', '--keep_ssml', action='store_true', default=True,
             help="keep ssml when do tts")
@@ -642,8 +642,8 @@ def main():
             help="dump the word list to specified file")
     parser.add_argument('-t', '--tags',
             help="add tags when create ANKI import file")
-    parser.add_argument('-wt', '--with_tts', action='store_true',
-            help="generate tts audio")
+    parser.add_argument('-wt', '--with_tts', action='store_true', default=True,
+            help="generate tts audio, default is True")
     parser.add_argument('-o', '--output',
             help='specify the output file')
     parser.set_defaults(func=cli)
