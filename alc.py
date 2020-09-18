@@ -25,7 +25,7 @@ SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 class AnkiLearnChineseNotes:
     """ main class to process content and produce different kinds of ANKI notes"""
 
-    def __init__(self, tlm=None, args=None):
+    def __init__(self, tlm=None, args=None, md=None):
         self.config = Config.LoadConfig()
         self.args = args
         self.tlm = tlm #Yaml Lesson Model object
@@ -68,7 +68,10 @@ class AnkiLearnChineseNotes:
         self.all_sentences_count = {}
         self.genArticle = True
 
-        self.md = MultiChineseDict()
+        if not md:
+            self.md = MultiChineseDict()
+        else:
+            self.md = md
 
         return
 
@@ -172,7 +175,7 @@ class AnkiLearnChineseNotes:
 
         r["字词"] = ch
         r["拼音"] = pinyin
-        if not "strokes" in cc.raw_js:
+        if not "strokes" in cc.raw_js or not cc.raw_js["strokes"]:
             r["笔画"] = ""
         else:
             r["笔画"] = cc.raw_js["strokes"]
@@ -549,14 +552,13 @@ def GenAnkiFromTextFile(fn, args):
         alc_notes.tags = args.tags
     alc_notes.genAnkiImportTxt(args.output)
 
-def GenAnkiFromYamlTLM(args):
+def GenAnkiFromOneYamlTLM(args, yaml_fn, md):
     """
         generate ANKI notes from a given YAML TLM file
         for such case, all kinds of notes will be genearted based on
         content in TLM model.
     """
-    logging.info("processing YAML lesson model...")
-    tlm = TextLessonModel(args.input_yaml_tlm)
+    tlm = TextLessonModel(yaml_fn)
     all_sentences = {}
     all_words = {}
     all_word_to_sentence = {}
@@ -574,7 +576,7 @@ def GenAnkiFromYamlTLM(args):
     words = list(all_words.keys())
     words.sort(key=lambda x: len(all_word_to_sentence[x]))
 
-    alc_notes = AnkiLearnChineseNotes(tlm, args=args)
+    alc_notes = AnkiLearnChineseNotes(tlm, args=args, md=md)
     alc_notes.setWithTTS(args.with_tts)
     alc_notes.setWordToSentenceDict(all_word_to_sentence)
     alc_notes.processWordList(words, extend_ch=None, ecfl=None)
@@ -585,22 +587,25 @@ def GenAnkiFromYamlTLM(args):
     else:
         alc_notes.tags = tlm.tag
 
-    output_words =args.output
-    if not output_words:
-        fn = args.input_yaml_tlm
-        fn = re.sub(".yaml$", "", fn)
-        output_words="%s.anki.import.txt"%tlm.lesson
-        output_articles = "%s.anki.import.articles.txt"%tlm.lesson
-        output_clozes = "%s.anki.import.clozes.txt"%tlm.lesson
-    else:
-        fn = ".".join(output_words.split(".")[:-1])
-        output_articles = "%s.articles.txt"% fn
-        output_clozes = "%s.anki.import.clozes.txt"%fn
+    fn = yaml_fn
+    fn = re.sub(".yaml$", "", fn)
+    output_words="%s.anki.import.txt"%fn
+    output_articles = "%s.anki.import.articles.txt"%fn
+    output_clozes = "%s.anki.import.clozes.txt"%fn
 
-    if args.input_yaml_tlm:
-        alc_notes.setGenArticle()
+    print(output_words, output_articles, output_clozes)
+    alc_notes.setGenArticle()
     alc_notes.genAnkiImportTxt(output_words, output_articles, output_clozes)
 
+    return
+
+def GenAnkiFromAllYamlTLM(args):
+    """ genearte ANKI notes from all YAML files"""
+    logging.info("processing YAML lesson model for all YAML files...")
+    logging.info("-output is ignored when YAML TLM file is input.")
+    md = MultiChineseDict()
+    for yaml_fn in args.input_yaml_tlm:
+        GenAnkiFromOneYamlTLM(args, yaml_fn, md)
     return
 
 def cli(args):
@@ -617,7 +622,7 @@ def cli(args):
         GenAnkiFromTextFile(args.input_text, args)
 
     if args.input_yaml_tlm:
-        GenAnkiFromYamlTLM(args)
+        GenAnkiFromAllYamlTLM(args)
 
     return
 
@@ -630,7 +635,7 @@ def main():
             help="Generate ANKI notes for words extracted from the string")
     parser.add_argument('-it', '--input_text',
             help="Genearte ANKI notes for words extracted from the text file")
-    parser.add_argument('-iyt', '--input_yaml_tlm', type=argparse.FileType('r'), nargs='+',
+    parser.add_argument('-iyt', '--input_yaml_tlm', nargs='+',
             help="Generate ANKI notes for TLM model from the  yaml file")
     parser.add_argument('-ks', '--keep_ssml', action='store_true', default=True,
             help="keep ssml when do tts")
