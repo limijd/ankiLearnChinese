@@ -2,7 +2,9 @@
 
 ## Introduction
 
-The tool can process any Chinese text and build an optimal list of Chinese characters/words from the text. The "pinyin" and "definitions" of the characters/words/idioms will also be created for them based on two local good enough dictionaries. Audio of the character/words/text can also be generated. For Chinese characters, a list of high frequency words and idioms will be linked to help learn and understand the character.
+This is a tool to build ANKI Chinese learning material from text books, various articles, ...etc. 
+
+It can process any Chinese text and build an optimal list of Chinese characters/words from the text. The "pinyin" and "definitions" of the characters/words/idioms will also be created for them based on two local good enough dictionaries. Audio of the character/words/text can also be generated. For Chinese characters, a list of high frequency words and idioms will be linked to help learn and understand the character.
 
 All characters/words/idioms have frequency value which was obtained from the webdict database.
 
@@ -28,7 +30,7 @@ Some pre-built resouces are also provided to help you get start. Below notes/car
 
 For un-organized material, only "字词" note type will be created. The note type can support 3 types of card: "学习字词", “朗读字词", “默写字词". 
 
-To build fully functional learning material, the document need to be structurized with a pre-defined YAML format which I call it CLTM("Chinese Learning Text Model"). See example.
+To build fully functional learning material, the document need to be structurized with a pre-defined YAML format which I call it TLM("Text Lesson Model"). See example.
 
 A simple manual ANKI database python3 "ORM" module is also provided to directly operate the ANKI database. It is useful when you try to analyze the current information in your ANKI decks. For example, I have created a tool to pre-analyze the readings to know how many new words are there. I usually use the script to process readings, books, or even movie captions. If there are too many new words in the material you can choose to import and learn these new words first.
 
@@ -47,6 +49,7 @@ It's working but not fully productized yet.
 
 ## Step by step setup guide
 
+https://github.com/limijd/ankiLearnChinese/wiki/Step-By-Step-Guide
 
 ## About
 

@@ -1,5 +1,3 @@
-# The database of an ANKI user usually can be find at <ANKI installation directory>/<user>/
-
 # Google TTS setup
 # PATH to google app credential file. The credential file can be downloaded from Google Cloud Console when 
 # you have registered the service.
