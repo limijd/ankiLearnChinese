@@ -121,9 +121,9 @@ class TLM_Article:
         self.type = "文" #[文, 诗，词，歌]
         if "type" in raw_article:
             self.type = raw_article["type"]
-            types = "[文, 古诗，词，诗歌, 笑话, 儿歌, 童话]"
+            types = "[文, 古诗，词，诗歌, 笑话, 儿歌, 童话, 神话, 谜语, 幽默]"
             if not self.type in  types:
-                logging.error("type must be: %s", types)
+                logging.error("type must be: %s, current type: %s", types, self.type)
                 sys.exit(1)
 
         self.sentences = []
