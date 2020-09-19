@@ -121,7 +121,10 @@ class TLM_Article:
         self.type = "文" #[文, 诗，词，歌]
         if "type" in raw_article:
             self.type = raw_article["type"]
-            assert self.type in "[文, 古诗，词，诗歌, 笑话, 儿歌]"
+            types = "[文, 古诗，词，诗歌, 笑话, 儿歌, 童话]"
+            if not self.type in  types:
+                logging.error("type must be: %s", types)
+                sys.exit(1)
 
         self.sentences = []
         self.words = []
@@ -210,6 +213,16 @@ class TextLessonModel:
 
         self.articleModels = OrderedDict()
         self.grammarModels = OrderedDict()
+        self.wordsModel = {}
+        if "words" in self.orig_doc:
+            for line in self.orig_doc["words"]:
+                line = line.strip()
+                words = re.sub(r"\n", " ", line, re.UNICODE)
+                words = words.split()
+                for w in words:
+                    if w == "":
+                        continue
+                    self.wordsModel[w] = True
 
         for article in self.text["articles"]:
             title = article["title"]

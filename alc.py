@@ -552,6 +552,11 @@ def GenAnkiFromTextFile(fn, args):
         alc_notes.tags = args.tags
     alc_notes.genAnkiImportTxt(args.output)
 
+def countValues(x, d):
+    if not x in d:
+        return 0
+    return len(d[x])
+
 def GenAnkiFromOneYamlTLM(args, yaml_fn, md):
     """
         generate ANKI notes from a given YAML TLM file
@@ -573,8 +578,17 @@ def GenAnkiFromOneYamlTLM(args, yaml_fn, md):
             for s in y.keys():
                 all_word_to_sentence[x][s] = 0
 
+    for w, dummy in tlm.wordsModel.items():
+        if not w in all_words:
+            all_words[w] = True
+            for s in all_sentences:
+                if s.find(w)>=0:
+                    if not w in all_word_to_sentence:
+                        all_word_to_sentence[w] = {}
+                    all_word_to_sentence[w][s] = 0
+
     words = list(all_words.keys())
-    words.sort(key=lambda x: len(all_word_to_sentence[x]))
+    words.sort(key=lambda x: countValues(x, all_word_to_sentence))
 
     alc_notes = AnkiLearnChineseNotes(tlm, args=args, md=md)
     alc_notes.setWithTTS(args.with_tts)
