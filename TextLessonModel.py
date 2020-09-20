@@ -108,6 +108,9 @@ class TLM_Article:
             print(raw_article)
             sys.exit(1)
         self.title = raw_article["title"]
+        if not self.title or len(self.title)==0:
+            logging.error("Title can't be none")
+            sys.exit(1)
         self.paragraphs = None
         if not "paragraphs" in raw_article:
             logging.error("Article model must contain paragraphs")
@@ -121,7 +124,7 @@ class TLM_Article:
         self.type = "文" #[文, 诗，词，歌]
         if "type" in raw_article:
             self.type = raw_article["type"]
-            types = "[文, 古诗，词，诗歌, 笑话, 儿歌, 童话, 神话, 谜语, 幽默]"
+            types = "[文, 古诗，词，诗歌, 笑话, 儿歌, 童话, 神话, 谜语, 幽默, 寓言]"
             if not self.type in  types:
                 logging.error("type must be: %s, current type: %s", types, self.type)
                 sys.exit(1)

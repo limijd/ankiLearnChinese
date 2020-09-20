@@ -8,7 +8,6 @@ Queue:
 4. open question
  
 
-
 In progress:
 
 Completed:
