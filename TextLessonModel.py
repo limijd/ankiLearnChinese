@@ -24,6 +24,7 @@ import re
 import jieba
 import html
 from collections import OrderedDict
+import Config
 
 class TLM_Question_QA:
     """ represent a basic question-answer """
@@ -53,10 +54,10 @@ class TLM_Question_Cloze:
         cloze_unfilled = self.raw_cloze
         cloze_unfilled = re.sub(r"{.*?}", "{____}", cloze_unfilled, re.UNICODE)
         cloze_unfilled = re.sub(r"\t", "  ", cloze_unfilled, re.UNICODE)
-        cloze_unfilled = re.sub(r"\n", " ", cloze_unfilled, re.UNICODE)
+        cloze_unfilled = re.sub(r"\n", "<br>", cloze_unfilled, re.UNICODE)
 
         cloze_filled = re.sub(r"\t", "  ", self.raw_cloze, re.UNICODE)
-        cloze_filled = re.sub(r"\n", "  ", cloze_filled, re.UNICODE)
+        cloze_filled = re.sub(r"\n", "<br>", cloze_filled, re.UNICODE)
         cloze_filled = re.sub(r"{", r"{<b>", cloze_filled, flags=re.UNICODE)
         cloze_filled = re.sub(r"}", r"</b>}", cloze_filled, flags=re.UNICODE)
 
@@ -102,6 +103,7 @@ class TLM_Article:
 
     def __init__(self, raw_article, tlm):
         self.tlm = tlm
+        self.clozes = []
         self.raw_data = raw_article
         if not "title" in raw_article:
             logging.error("Article must have \"title\" field")
@@ -136,14 +138,25 @@ class TLM_Article:
         self.genSentences()
         self.genWordlist()
 
+        self.genQuestions()
+
         return
+
+    def genQuestions(self):
+        if not "clozes" in self.raw_data:
+            return []
+
+        for clz in self.raw_data["clozes"]:
+            cloze = TLM_Question_Cloze(clz, self, self.tlm)
+            self.clozes.append(cloze)
+            cloze.genAnki()
 
     def genSentences(self):
         self.sentences = []
         for paragraph in self.paragraphs:
             paragraph = paragraph.strip()
             #paragraph = re.sub("\n", "", paragraph)
-            for s in re.finditer(r".*?[\r\n。!？；][\"]*", paragraph, re.UNICODE):
+            for s in re.finditer(r".*?[\r\n。!？；][\"”]*", paragraph, re.UNICODE):
                 if len(s.group(0).strip()) == 0:
                     continue
                 s = s.group(0).strip()
@@ -153,6 +166,17 @@ class TLM_Article:
                 self.sentences.append(s)
 
         return
+
+    def getHint(self):
+        return "课文: %s"%self.title
+
+    def genFullHintAnkiField(self):
+        ret = "<b>课文: %s</b><br>"%self.title
+        if "clozes" in self.raw_data:
+            clozes = "<br>".join(self.raw_data["clozes"])
+            clozes = re.sub(r"\n", r"<br>", clozes, flags=re.UNICODE)
+            ret = ret + clozes
+        return ret
 
     def genWordlist(self):
         for sentence in self.sentences:
@@ -171,7 +195,7 @@ class TLM_Article:
         paragraphs = "\n".join(self.paragraphs)
         article = "%s\n\n%s"%(self.title, paragraphs)
         article = html.escape(article)
-        ssml = "<speak>{}</speak>".format(article.replace("\n", '\n<break time="1s"/>'))
+        ssml = "<speak>{}</speak>".format(article.replace("\n", '\n<break time="%s"/>'%self.tlm.paragraph_break_time))
         return ssml
 
     def getUniqueName(self):
@@ -197,6 +221,11 @@ class TextLessonModel:
         self.fn = fn
         self.orig_doc = self.load_yaml(fn)
         assert self.orig_doc
+
+        self.config = Config.LoadConfig()
+        self.paragraph_break_time = "1s"
+        if "GOOGLE_TTS_PARAGRAPH_BREAK_TIME" in self.config:
+            self.paragraph_break_time = self.config["GOOGLE_TTS_PARAGRAPH_BREAK_TIME"]
 
         self.text = {}
         self.text["lesson"] = self.orig_doc["lesson"]

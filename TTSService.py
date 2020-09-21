@@ -34,6 +34,9 @@ class GoogleTTS:
         if "GOOGLE_TTS_SPEAKING_RATE" in config:
             self.speaking_rate = float(config["GOOGLE_TTS_SPEAKING_RATE"])
 
+        if "GOOGLE_TTS_PARAGRAPH_BREAK_TIME" in config:
+            self.paragraph_break_time = config["GOOGLE_TTS_PARAGRAPH_BREAK_TIME"]
+
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.abspath(
                 os.path.expanduser(config["GOOGLE_APPLICATION_CREDENTIALS"]))
 

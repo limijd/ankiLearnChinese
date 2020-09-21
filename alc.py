@@ -26,9 +26,9 @@ class AnkiLearnChineseNotes:
     """ main class to process content and produce different kinds of ANKI notes"""
 
     def __init__(self, tlm=None, args=None, md=None):
-        self.config = Config.LoadConfig()
         self.args = args
         self.tlm = tlm #Yaml Lesson Model object
+        self.config = Config.LoadConfig()
         self.note_type_fields = self.config["ANKI_CHINESE_WORD_NOTE_TYPE"]
         self.word_list = {}
         self.char_list = {}
@@ -404,6 +404,10 @@ class AnkiLearnChineseNotes:
         logging.info("Genearting clozes to: %s", fn_clozes)
         clozes = []
         for dummy, obj in self.tlm.grammarModels.items():
+            for cloze in obj.clozes:
+                clozes.append(cloze)
+
+        for dummy, obj in self.tlm.articleModels.items():
             for cloze in obj.clozes:
                 clozes.append(cloze)
 
