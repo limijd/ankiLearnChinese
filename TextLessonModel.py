@@ -26,6 +26,96 @@ import html
 from collections import OrderedDict
 import Config
 
+class TLM_Question:
+    def __init__(self, req, hint, category, scope, tlm):
+        self.tlm = tlm
+        self.requirement = req
+        self.hint = hint
+        self.category = category
+        self.scope = scope #document object that this question belongs to 
+        return
+
+    @staticmethod
+    def CreateQuestions(raw_q, scope, tlm):
+        logging.info("Creating questions for scope: %s", scope.getName())
+        assert("items" in raw_q)
+        req = raw_q["requirement"] if "requirement" in raw_q else ""
+        hint = raw_q["hint"] if "hint" in raw_q else ""
+        category = raw_q["category"] if "category" in raw_q else ""
+
+        qs = []
+        for item in raw_q["items"]:
+            #default is cloze
+            q = QCloze(req, hint, category, item, scope, tlm)
+            qs.append(q)
+        return qs
+
+    @staticmethod
+    def findNodeInScope(scope, node, depth=0):
+        if isinstance(scope, dict) or isinstance(scope, OrderedDict):
+            for k,v in scope.items():
+                if k == node: 
+                    return v
+                n = TLM_Question.findNodeInScope(v, node, depth+2)
+                if n:
+                    return n
+
+        if isinstance(scope, list): 
+            for s in scope:
+                n = TLM_Question.findNodeInScope(s, node, depth+2)
+                if n:
+                    return n
+
+
+class QCloze(TLM_Question):
+    def __init__(self, req, hint, category, cloze, scope, tlm):
+        TLM_Question.__init__(self, req, hint, category, scope, tlm)
+        self.raw_content = cloze
+        self.processed_raw_content = None
+        self.unfilled_cloze = cloze
+        self.filled_cloze = cloze
+        self.scope = scope
+
+        self.parse_content()
+        
+    def parse_content(self):
+        replace_list = {}
+        for s in re.finditer("{{.*?}}", self.raw_content, flags=re.UNICODE):
+            kw = s.group(0)[2:-2]
+            node = TLM_Question.findNodeInScope(self.scope.raw_data, kw)
+            if node:
+                replace_list["{{%s}}"%kw] = node
+
+        cloze = self.raw_content 
+        for k,w in replace_list.items():
+            cloze = re.sub(k, w, cloze, flags=re.UNICODE)
+        self.processed_raw_content = cloze
+        cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
+        self.filled_cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
+
+        cloze = re.sub(r'{.*?}', r'{____}', cloze, flags=re.UNICODE) 
+        cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
+        self.unfilled_cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
+
+        return
+
+    def __repr__(self):
+        s = "\n"
+        if self.requirement:
+            s = s + "Requirement: %s\n"%self.requirement
+        if self.hint:
+            s = s + "Hint: %s\n"%self.hint
+        s = s + "Cloze:\n%s"%self.filled_cloze
+        return s
+
+    def genAnki(self):
+        """ gen anki import for question """
+        """ Fields: unfilled_cloze, filled_cloze, tag, requirement, hint """
+        hint = self.hint if self.hint else ""
+        requirement = self.requirement if self.requirement else ""
+        anki_row = "\t".join([self.unfilled_cloze, self.filled_cloze, self.tlm.tag, requirement, hint])
+        return anki_row
+
 class TLM_Question_QA:
     """ represent a basic question-answer """
     def __init__(self, question, answer):
@@ -74,8 +164,10 @@ class TLM_Grammar:
         self.grammar = grammar
         self.raw_data = raw_grammar
         self.clozes = []
+        self.questions = []
+
         self.genQuestions()
-        pass
+        return
 
     def genFullHintAnkiField(self):
         ret = "<b>语法: %s</b><br>"%self.grammar
@@ -85,18 +177,26 @@ class TLM_Grammar:
             ret = ret + clozes
         return ret
 
+    def getName(self):
+        return self.grammar
 
     def getHint(self):
         return "语法: %s"%self.grammar
 
     def genQuestions(self):
-        if not "clozes" in self.raw_data:
-            return []
+        if "clozes" in self.raw_data:
+            for clz in self.raw_data["clozes"]:
+                cloze = TLM_Question_Cloze(clz, self, self.tlm)
+                self.clozes.append(cloze)
+                cloze.genAnki()
 
-        for clz in self.raw_data["clozes"]:
-            cloze = TLM_Question_Cloze(clz, self, self.tlm)
-            self.clozes.append(cloze)
-            cloze.genAnki()
+        if "questions" in self.raw_data:
+            for q in self.raw_data["questions"]:
+                for obj in TLM_Question.CreateQuestions(q, self, self.tlm):
+                    self.questions.append(obj)
+
+        return
+
 
 class TLM_Article:
     """ represent a Text/Essay/Article """
@@ -138,18 +238,24 @@ class TLM_Article:
         self.genSentences()
         self.genWordlist()
 
+        self.questions = []
         self.genQuestions()
 
         return
 
     def genQuestions(self):
-        if not "clozes" in self.raw_data:
-            return []
+        if "clozes" in self.raw_data:
+            for clz in self.raw_data["clozes"]:
+                cloze = TLM_Question_Cloze(clz, self, self.tlm)
+                self.clozes.append(cloze)
+                cloze.genAnki()
 
-        for clz in self.raw_data["clozes"]:
-            cloze = TLM_Question_Cloze(clz, self, self.tlm)
-            self.clozes.append(cloze)
-            cloze.genAnki()
+        if "questions" in self.raw_data:
+            for q in self.raw_data["questions"]:
+                for obj in TLM_Question.CreateQuestions(q, self, self.tlm):
+                    self.questions.append(obj)
+
+        return
 
     def genSentences(self):
         self.sentences = []
@@ -166,6 +272,9 @@ class TLM_Article:
                 self.sentences.append(s)
 
         return
+
+    def getName(self):
+        return self.title
 
     def getHint(self):
         return "课文: %s"%self.title

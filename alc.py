@@ -326,7 +326,7 @@ class AnkiLearnChineseNotes:
             self.tts_service.synthesize_chinese_text(word, fn_abs)
         return True
 
-    def genAnkiImportTxt(self, fn, fn_articles=None, fn_clozes=None):
+    def genAnkiImportTxt(self, fn, fn_articles=None, fn_clozes=None, fn_questions=None):
         """ generate all notes to files ready to be imported by ANKI """
         genlist = []
 
@@ -397,7 +397,36 @@ class AnkiLearnChineseNotes:
 
         if fn_clozes:
             self.GenClozes(fn_clozes)
+
+        self.GenQuestions(fn_questions)
+
         return
+
+    def GenQuestions(self, fn_questions):
+        if not fn_questions:
+            return
+        logging.info("Genearting questions to: %s", fn_questions)
+        questions = []
+        for dummy, obj in self.tlm.grammarModels.items():
+            for q in obj.questions:
+                questions.append(q)
+
+        for dummy, obj in self.tlm.articleModels.items():
+            for q in obj.questions:
+                questions.append(q)
+
+        if not questions:
+            logging.info("No question to be generated.")
+            return 
+
+        fp = open(fn_questions, "w")
+        for q in questions:
+            fp.write(q.genAnki())
+            fp.write("\n")
+        fp.close()
+
+        return
+
 
     def GenClozes(self, fn_clozes):
         """ generate cloze note to clozes file """
@@ -411,6 +440,9 @@ class AnkiLearnChineseNotes:
             for cloze in obj.clozes:
                 clozes.append(cloze)
 
+        if not clozes:
+            logging.info("No cloze to be generated.")
+            return 
         fp = open(fn_clozes, "w")
         for cloze in clozes:
             fp.write(cloze.genAnki())
@@ -610,10 +642,10 @@ def GenAnkiFromOneYamlTLM(args, yaml_fn, md):
     output_words="%s.anki.import.txt"%fn
     output_articles = "%s.anki.import.articles.txt"%fn
     output_clozes = "%s.anki.import.clozes.txt"%fn
+    output_questions = "%s.anki.import.questions.txt"%fn
 
-    print(output_words, output_articles, output_clozes)
     alc_notes.setGenArticle()
-    alc_notes.genAnkiImportTxt(output_words, output_articles, output_clozes)
+    alc_notes.genAnkiImportTxt(output_words, output_articles, output_clozes, output_questions)
 
     return
 
