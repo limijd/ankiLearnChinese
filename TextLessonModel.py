@@ -78,6 +78,14 @@ class QCloze(TLM_Question):
 
         self.parse_content()
         
+    @staticmethod
+    def sub_aux(x):
+        s = x.group(0).strip()
+        assert(len(s)>=2)
+        e = '▢'*(len(s)-2)
+        r = re.sub(r'{.*}', "{%s}"%e, s, flags=re.UNICODE)
+        return r
+
     def parse_content(self):
         replace_list = {}
         for s in re.finditer("{{.*?}}", self.raw_content, flags=re.UNICODE):
@@ -93,7 +101,9 @@ class QCloze(TLM_Question):
         cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
         self.filled_cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
 
-        cloze = re.sub(r'{.*?}', r'{____}', cloze, flags=re.UNICODE) 
+        #cloze = re.sub(r'{.*?}', r'{____}', cloze, flags=re.UNICODE) 
+        #cloze = re.sub(r'{.*?}', lambda x:x.group(0).replace(r'.*', "%s"%("▢"*(len(x.group(0))))), cloze, flags=re.UNICODE)
+        cloze = re.sub(r'{.*?}', QCloze.sub_aux, cloze, flags=re.UNICODE)
         cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
         self.unfilled_cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
 
@@ -113,7 +123,7 @@ class QCloze(TLM_Question):
         """ Fields: unfilled_cloze, filled_cloze, tag, requirement, hint """
         hint = self.hint if self.hint else ""
         requirement = self.requirement if self.requirement else ""
-        anki_row = "\t".join([self.unfilled_cloze, self.filled_cloze, self.tlm.tag, requirement, hint])
+        anki_row = "\t".join([self.filled_cloze, self.unfilled_cloze, hint, "", requirement, self.tlm.tag])
         return anki_row
 
 class TLM_Question_QA:
@@ -155,13 +165,13 @@ class TLM_Question_Cloze:
         cloze_fullHint = self.owner.genFullHintAnkiField()
 
         anki_row = "\t".join([cloze_filled, cloze_unfilled, cloze_hint,
-                              cloze_fullHint, self.tlm.tag])
+                              cloze_fullHint, "", self.tlm.tag])
         return anki_row
 
 class TLM_Grammar:
     def __init__(self, grammar, raw_grammar, tlm):
         self.tlm = tlm
-        self.grammar = grammar
+        self.grammar = grammar.strip()
         self.raw_data = raw_grammar
         self.clozes = []
         self.questions = []

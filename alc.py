@@ -428,6 +428,7 @@ class AnkiLearnChineseNotes:
                 anki = [s]
                 md5_s = hashlib.md5(s.encode("utf-8")).hexdigest()
                 anki.append("%s.mp3"%md5_s)
+                anki.append(self.tlm.tag)
                 fn_abs="%s/%s.mp3"%(self.tts_output_dir,md5_s)
                 self.tts_service.synthesize_chinese_text(s, fn_abs)
                 fp.write("\t".join(anki))
