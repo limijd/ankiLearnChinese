@@ -8,7 +8,7 @@ Build TLM (TextLessonModel) from the input YAML file
 The YAML file need to at least define "lesson", "tag" field. "tag" is better to be unique.
 Otherwise the data in this model could eventually interfere with the data which has same tag.
 
-The top level model is TextLessonModel.  TLM_Article, TLM_Grammar, TLM_WordList will be the
+The top level model is TextLessonModel.  TLM_Article, TLM_Grammar will be the
 concret content in the model.
 
 There are 3 TLM_Question_* classes.  TLM_Question_QA, TLM_Question_MCQ, TLM_Question_Cloze.
@@ -298,6 +298,15 @@ class TLM_Article:
                     ss[sentence] = True
                 else:
                     self.wordToSentences[tok] = {sentence:True}
+
+        for paragraph in self.paragraphs:
+            paragraph = paragraph.strip()
+            for tok in jieba.cut(paragraph, cut_all=False):
+                if re.search(r"[   :!！\b\n\r\t.\"‘“”。，\]\[]", tok, re.UNICODE):
+                    continue
+                if not tok in self.words:
+                    self.words.append(tok)
+
         return
 
     def generateSSML(self):
@@ -314,15 +323,6 @@ class TLM_Article:
         s = "[Article]:《%s》, " % self.title
         s = s + "%d paragraphs, %d sentences, %d words"%(len(self.paragraphs), len(self.sentences), len(self.words))
         return s
-
-class TLM_WordList:
-    def __init__(self, wordlist):
-        self.word_list = wordlist
-
-    def addWord(self, word):
-        if not word in self.word_list:
-            self.word_list.append(word)
-        return
 
 class TextLessonModel:
     def __init__(self, fn):
@@ -341,22 +341,53 @@ class TextLessonModel:
         self.lesson = self.text["lesson"]
         self.text["tag"] = self.orig_doc["tag"]
         self.tag = self.text["tag"]
-        self.text["articles"] = self.orig_doc["articles"]
+        if not "articles" in self.orig_doc:
+            self.text["articles"] = []
+        else:
+            self.text["articles"] = self.orig_doc["articles"]
+
         if "grammars" in self.orig_doc:
             self.text["grammars"] = self.orig_doc["grammars"]
         else:
             self.text["grammars"] = []
 
-        if "words" in self.orig_doc:
-            self.text["words"] = self.orig_doc["words"]
-        else:
-            self.text["words"] = []
-
         self.articleModels = OrderedDict()
         self.grammarModels = OrderedDict()
         self.wordsModel = {}
-        if "words" in self.orig_doc:
-            for line in self.orig_doc["words"]:
+        self.dictation_sentences = {}
+        self.dictation_words = {}
+
+        if "dictation_words" in self.orig_doc:
+            self.text["dictation_words"] = self.orig_doc["dictation_words"]
+        else:
+            self.text["dictation_words"] = []
+
+        self.dictation_wordToSentence = {}
+
+        if "dictation_sentences" in self.orig_doc:
+            self.text["dictation_sentences"] = self.orig_doc["dictation_sentences"]
+            sts  = self.orig_doc["dictation_sentences"]
+            assert isinstance(sts, list)
+            for s in sts:
+                words = self.build_sentence(s)
+                for w in words:
+                    if w == "":
+                        continue
+                    self.wordsModel[w] = True
+                    self.dictation_wordToSentence[w] = s
+                    self.dictation_words[w] = True
+                self.dictation_sentences[s] = True
+        else:
+            self.text["dictation_sentences"] = []
+
+        if "dictation_words" in self.orig_doc:
+            lines = []
+            if isinstance(self.orig_doc["dictation_words"], list):
+                lines = self.orig_doc["dictation_words"]
+            else:
+                assert isinstance(self.orig_doc["dictation_words"], str)
+                lines = [self.orig_doc["dictation_words"]]
+            for line in lines:
                 line = line.strip()
                 words = re.sub(r"\n", " ", line, re.UNICODE)
                 words = words.split()
@@ -364,6 +395,7 @@ class TextLessonModel:
                     if w == "":
                         continue
                     self.wordsModel[w] = True
+                    self.dictation_words[w] = True
 
         for article in self.text["articles"]:
             title = article["title"]
@@ -373,6 +405,14 @@ class TextLessonModel:
         for grammar in self.text["grammars"]:
             gm = TLM_Grammar(grammar["grammar"], grammar, self)
             self.grammarModels[grammar["grammar"]] = gm
+
+    def build_sentence(self, s):
+        words = []
+        for tok in jieba.cut(s, cut_all=False):
+            if re.search(r"[   :!！\b\n\r\t.\"‘“”。，\]\[]", tok, re.UNICODE):
+                continue
+            words.append(tok)
+        return words
 
     def __repr__(self):
         s = "lesson: %s\n" % self.text["lesson"]

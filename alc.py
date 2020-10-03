@@ -11,6 +11,7 @@ import sys
 import re
 import argparse
 import logging
+import hashlib
 from collections import OrderedDict
 import jieba
 from MultiChineseDict import MultiChineseDict
@@ -344,6 +345,12 @@ class AnkiLearnChineseNotes:
             fp = open(fn, "w")
 
         for ch, dummy in self.char_list.items():
+            in_dictation = False
+            for dw in self.tlm.dictation_words:
+                if dw.find(ch)>=0:
+                    in_dictation = True
+            if in_dictation:
+                continue
             genlist.append(self.md.allChars[ch])
             chs = self.get_ch_fields(ch)
             values = []
@@ -358,6 +365,12 @@ class AnkiLearnChineseNotes:
 
         ignore_words_without_explanation = []
         for word, dummy in self.word_list.items():
+            in_dictation = False
+            for dw in self.tlm.dictation_words:
+                if dw.find(word)>=0:
+                    in_dictation = True
+            if in_dictation:
+                continue
             cw = self.md.allWords[word]
             if not cw.raw_js["explanation"] and not cw.raw_js["x7explanation"]:
                 ignore_words_without_explanation.append(word)
@@ -370,11 +383,55 @@ class AnkiLearnChineseNotes:
                 len(ignore_words_without_explanation), " ".join(ignore_words_without_explanation))
 
         for idiom, dummy in self.idiom_list.items():
+            if idiom in self.tlm.dictation_words:
+                continue
             genlist.append(self.md.allIdioms[idiom])
             fp.write("\t".join(self.get_idiom_fields(idiom).values()))
             fp.write("\n")
 
         if fn:
+            fp.close()
+
+        if self.tlm.dictation_words:
+            fn = fn + ".dictation"
+            fp = open(fn, "w")
+            for word, dummy in self.tlm.dictation_words.items():
+                if len(word)>1:
+                    if not word in self.md.allWords:
+                        continue
+                    cw = self.md.allWords[word]
+                    if not cw.raw_js["explanation"] and not cw.raw_js["x7explanation"]:
+                        ignore_words_without_explanation.append(word)
+                        continue
+                    genlist.append(self.md.allWords[word])
+                    fp.write("\t".join(self.get_word_fields(word).values()))
+                    fp.write("\n")
+                else:
+                    ch = word
+                    chs = self.get_ch_fields(ch)
+                    values = []
+                    for dummy, fld in chs.items():
+                        if ch:
+                            assert isinstance(fld, str)
+                            values.append(fld)
+                        else:
+                            values.append("")
+                    fp.write("\t".join(values))
+                    fp.write("\n")
+
+            fp.close()
+
+        if self.tlm.dictation_sentences:
+            fn = fn + ".dictation_sentences"
+            fp = open(fn, "w")
+            for s, dummy in self.tlm.dictation_sentences.items():
+                anki = [s]
+                md5_s = hashlib.md5(s.encode("utf-8")).hexdigest()
+                anki.append("%s.mp3"%md5_s)
+                fn_abs="%s/%s.mp3"%(self.tts_output_dir,md5_s)
+                self.tts_service.synthesize_chinese_text(s, fn_abs)
+                fp.write("\t".join(anki))
+                fp.write("\n")
             fp.close()
 
         if self.gen_list:
