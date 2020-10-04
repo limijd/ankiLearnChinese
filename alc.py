@@ -346,9 +346,10 @@ class AnkiLearnChineseNotes:
 
         for ch, dummy in self.char_list.items():
             in_dictation = False
-            for dw in self.tlm.dictation_words:
-                if dw.find(ch)>=0:
-                    in_dictation = True
+            if self.tlm:
+                for dw in self.tlm.dictation_words:
+                    if dw.find(ch)>=0:
+                        in_dictation = True
             if in_dictation:
                 continue
             genlist.append(self.md.allChars[ch])
@@ -366,9 +367,10 @@ class AnkiLearnChineseNotes:
         ignore_words_without_explanation = []
         for word, dummy in self.word_list.items():
             in_dictation = False
-            for dw in self.tlm.dictation_words:
-                if dw.find(word)>=0:
-                    in_dictation = True
+            if self.tlm:
+                for dw in self.tlm.dictation_words:
+                    if dw.find(word)>=0:
+                        in_dictation = True
             if in_dictation:
                 continue
             cw = self.md.allWords[word]
@@ -392,7 +394,7 @@ class AnkiLearnChineseNotes:
         if fn:
             fp.close()
 
-        if self.tlm.dictation_words:
+        if self.tlm and self.tlm.dictation_words:
             fn = fn + ".dictation"
             fp = open(fn, "w")
             for word, dummy in self.tlm.dictation_words.items():
@@ -421,7 +423,7 @@ class AnkiLearnChineseNotes:
 
             fp.close()
 
-        if self.tlm.dictation_sentences:
+        if self.tlm and self.tlm.dictation_sentences:
             fn = fn + ".dictation_sentences"
             fp = open(fn, "w")
             for s, dummy in self.tlm.dictation_sentences.items():
