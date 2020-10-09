@@ -410,6 +410,8 @@ class AnkiLearnChineseNotes:
                     fp.write("\n")
                 else:
                     ch = word
+                    if not ch in self.md.allChars:
+                        continue
                     chs = self.get_ch_fields(ch)
                     values = []
                     for dummy, fld in chs.items():
