@@ -15,6 +15,7 @@ import hashlib
 from collections import OrderedDict
 import jieba
 from MultiChineseDict import MultiChineseDict
+from MultiChineseDict import ChWord
 from TextLessonModel import TextLessonModel
 from TTSService import GoogleTTS
 
@@ -395,6 +396,31 @@ class AnkiLearnChineseNotes:
             fp.close()
 
         if self.tlm and self.tlm.dictation_words:
+            dwords = list(self.tlm.dictation_words.keys())
+            for word in dwords:
+                if len(word)>1:
+                    if not word in self.md.allWords:
+                        if len(word)>2:
+                            print("Break due to not in dict: %s"%word)
+                            for tok in jieba.cut(word, cut_all=False):
+                                print("TOK:%s"%tok)
+                                if not tok in self.md.allWords:
+                                    if len(tok)>=1:
+                                        js = {"ci":tok, "explanation":"n/a"}
+                                        wd = ChWord(tok, js)
+                                        self.md.allWords[tok] = wd
+                                self.tlm.dictation_words[tok] = True
+                        else:
+                                js = {"ci":word, "explanation":"n/a"}
+                                wd = ChWord(word, js)
+                                self.md.allWords[word] = wd
+                        continue
+                    cw = self.md.allWords[word]
+                    if not cw.raw_js["explanation"] and not cw.raw_js["x7explanation"]:
+                        cw.raw_js["explanation"] = "n/a"
+                        continue
+
+        if self.tlm and self.tlm.dictation_words:
             fn = fn + ".dictation"
             fp = open(fn, "w")
             for word, dummy in self.tlm.dictation_words.items():
@@ -475,6 +501,10 @@ class AnkiLearnChineseNotes:
 
         for dummy, obj in self.tlm.articleModels.items():
             for q in obj.questions:
+                questions.append(q)
+
+        if self.tlm.testModel: 
+            for obj in self.tlm.testModel.questions:
                 questions.append(q)
 
         if not questions:

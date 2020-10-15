@@ -168,6 +168,19 @@ class TLM_Question_Cloze:
                               cloze_fullHint, "", self.tlm.tag])
         return anki_row
 
+class TLM_test:
+    def __init__(self, raw_data, tlm):
+        self.tlm = tlm
+        self.raw_data = raw_data
+        self.questions = []
+        self.genQuestions()
+
+    def genQuestions(self):
+        if "questions" in self.raw_data:
+            for q in self.raw_data["questions"]:
+                for obj in TLM_Question.CreateQuestions(q, self, self.tlm):
+                    self.questions.append(obj)
+
 class TLM_Grammar:
     def __init__(self, grammar, raw_grammar, tlm):
         self.tlm = tlm
@@ -361,6 +374,7 @@ class TextLessonModel:
         else:
             self.text["grammars"] = []
 
+        self.testModel = None
         self.articleModels = OrderedDict()
         self.grammarModels = OrderedDict()
         self.wordsModel = {}
@@ -406,6 +420,9 @@ class TextLessonModel:
                         continue
                     self.wordsModel[w] = True
                     self.dictation_words[w] = True
+
+        if "test" in self.text:
+            self.testModel = TLM_test(self.text["test"], self)
 
         for article in self.text["articles"]:
             title = article["title"]
