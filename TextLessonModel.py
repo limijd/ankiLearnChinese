@@ -175,11 +175,13 @@ class TLM_test:
         self.questions = []
         self.genQuestions()
 
+    def getName(self):
+        return "test"
+
     def genQuestions(self):
-        if "questions" in self.raw_data:
-            for q in self.raw_data["questions"]:
-                for obj in TLM_Question.CreateQuestions(q, self, self.tlm):
-                    self.questions.append(obj)
+        for q in self.raw_data:
+            for obj in TLM_Question.CreateQuestions(q, self, self.tlm):
+                self.questions.append(obj)
 
 class TLM_Grammar:
     def __init__(self, grammar, raw_grammar, tlm):
@@ -378,6 +380,12 @@ class TextLessonModel:
             self.text["read_words"] = []
         else:
             self.text["read_words"] = self.orig_doc["read_words"]
+
+        if not "test" in self.orig_doc:
+            self.text["test"] = []
+        else:
+            self.text["test"] = self.orig_doc["test"]
+
 
         self.testModel = None
         self.articleModels = OrderedDict()

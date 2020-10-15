@@ -505,7 +505,7 @@ class AnkiLearnChineseNotes:
 
         if self.tlm.testModel: 
             for obj in self.tlm.testModel.questions:
-                questions.append(q)
+                questions.append(obj)
 
         if not questions:
             logging.info("No question to be generated.")
