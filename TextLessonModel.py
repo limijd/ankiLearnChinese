@@ -373,6 +373,11 @@ class TextLessonModel:
             self.text["grammars"] = self.orig_doc["grammars"]
         else:
             self.text["grammars"] = []
+        
+        if not "read_words" in self.orig_doc:
+            self.text["read_words"] = []
+        else:
+            self.text["read_words"] = self.orig_doc["read_words"]
 
         self.testModel = None
         self.articleModels = OrderedDict()
@@ -380,6 +385,9 @@ class TextLessonModel:
         self.wordsModel = {}
         self.dictation_sentences = {}
         self.dictation_words = {}
+
+        self.read_words = {}
+        self.process_read_words()
 
         if "dictation_words" in self.orig_doc:
             self.text["dictation_words"] = self.orig_doc["dictation_words"]
@@ -432,6 +440,20 @@ class TextLessonModel:
         for grammar in self.text["grammars"]:
             gm = TLM_Grammar(grammar["grammar"], grammar, self)
             self.grammarModels[grammar["grammar"]] = gm
+
+    def process_read_words(self):
+        if not self.text["read_words"]:
+            return
+        if isinstance(self.text["read_words"], list):
+            lines = self.text["read_words"]
+        else:
+            lines = [self.text["read_words"]]
+        for line in lines:
+            line = line.strip()
+            words = line.split()
+            for w in words:
+                self.read_words[w] = True
+                self.wordsModel[w] = True
 
     def build_sentence(self, s):
         words = []
