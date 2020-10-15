@@ -81,8 +81,14 @@ class QCloze(TLM_Question):
     @staticmethod
     def sub_aux(x):
         s = x.group(0).strip()
-        assert(len(s)>=2)
-        e = '▢'*(len(s)-2)
+        if s.find(":")>0:
+            sz = int(s.split(":")[0].strip("{"))
+        else:
+            sz = len(s)-2
+        if sz>4:
+            e = '__'*sz
+        else:
+            e = '▢'*sz
         r = re.sub(r'{.*}', "{%s}"%e, s, flags=re.UNICODE)
         return r
 
@@ -106,6 +112,8 @@ class QCloze(TLM_Question):
         cloze = re.sub(r'{.*?}', QCloze.sub_aux, cloze, flags=re.UNICODE)
         cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
         self.unfilled_cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
+
+        self.filled_cloze = re.sub(r"{[0-9]:", "{", self.filled_cloze, re.UNICODE)
 
         return
 
