@@ -74,6 +74,7 @@ class QCloze(TLM_Question):
         self.processed_raw_content = None
         self.unfilled_cloze = cloze
         self.filled_cloze = cloze
+        self.answer = ""
         self.scope = scope
 
         self.parse_content()
@@ -104,6 +105,15 @@ class QCloze(TLM_Question):
         for k,w in replace_list.items():
             cloze = re.sub(k, w, cloze, flags=re.UNICODE)
         self.processed_raw_content = cloze
+
+        answer = re.search(r"\$\$.*?\$\$", cloze, re.UNICODE)
+        if answer:
+            answer = answer.group(0)
+            answer = answer.strip('$$')
+            self.answer = answer
+
+        cloze = re.sub(r"\$\$.*?\$\$", "", cloze, re.UNICODE)
+
         cloze = re.sub(r"\t", "  ", cloze, re.UNICODE)
         self.filled_cloze = re.sub(r"\n", "<br>", cloze, re.UNICODE)
 
@@ -131,7 +141,7 @@ class QCloze(TLM_Question):
         """ Fields: unfilled_cloze, filled_cloze, tag, requirement, hint """
         hint = self.hint if self.hint else ""
         requirement = self.requirement if self.requirement else ""
-        anki_row = "\t".join([self.filled_cloze, self.unfilled_cloze, hint, "", requirement, self.tlm.tag])
+        anki_row = "\t".join([self.filled_cloze, self.unfilled_cloze, hint, "", requirement, self.answer, self.tlm.tag])
         return anki_row
 
 class TLM_Question_QA:
