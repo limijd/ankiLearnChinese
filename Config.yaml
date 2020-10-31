@@ -2,7 +2,7 @@
 # PATH to google app credential file. The credential file can be downloaded from Google Cloud Console when 
 # you have registered the service.
 GOOGLE_TTS_ENABLE: True
-GOOGLE_APPLICATION_CREDENTIALS: ~/.google/myChineseTTS-5ab978b84843.json
+GOOGLE_APPLICATION_CREDENTIALS: ~/.configs.secure/google_tts_5ab978b84843.json
 GOOGLE_TTS_LANAGUAGE_CODE: "cmn-CN"
 GOOGLE_TTS_VOICE_NAME: "cmn-CN-Wavenet-A"
 GOOGLE_TTS_SPEAKING_RATE: 0.9
